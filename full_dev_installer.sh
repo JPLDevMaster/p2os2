@@ -75,15 +75,19 @@ echo ""
 # ----------------------------------------------------------------------
 echo -e "${GREEN}[Step 3] Installing Build Tools and 'socat'...${RESET}"
 
-sudo apt install -y build-essential python3-colcon-common-extensions python3-rosdep python3-vcstool
+sudo apt install -y build-essential python3-colcon-common-extensions python3-rosdep2 python3-vcstool
 
 # Install socat for the firmware emulation workflow.
 sudo apt install -y socat
 
-# Initialize rosdep if needed.
-if [ ! -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
-    sudo rosdep init
+# Clean up legacy rosdep2 sources to prevent conflicts.
+if [ -f /etc/ros/rosdep/sources.list.d/20-default.list ]; then
+    echo -e "${BLUE}[INFO] Cleaning up legacy rosdep sources to prevent conflicts...${RESET}"
+    sudo rm /etc/ros/rosdep/sources.list.d/20-default.list
 fi
+
+# Initialize rosdep.
+sudo rosdep init
 rosdep update
 
 echo ""
