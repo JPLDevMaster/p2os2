@@ -33,34 +33,59 @@ To use these packages, your system should meet the following requirements:
 * **Gazebo Version:** Gazebo Harmonic (Tested and working)
 * **Essential Tools:** `colcon`, `socat` (for firmware emulation)
 
-## Installation and Setup
+## ⚡ Quick Installation (Automated)
+
+We provide two automated scripts to simplify installation. Choose the one that fits your use case.
+
+### Option A: Developer & Simulation Setup (Recommended for Development PC)
+Use this script on your **personal computer**. It installs the full suite: ROS 2 Humble, Gazebo Harmonic, MobileSim (Legacy Emulator), and the p2os2 drivers.
+
+```bash
+# Clone the repository
+git clone -b p3dx-enabled https://github.com/JPLDevMaster/p2os2.git
+cd p2os2
+
+# Run the full installer
+chmod +x full_dev_installer.sh
+./full_dev_installer.sh
+```
+
+### Option B: Robot Driver Setup (Physical Pioneer Only)
+Use this script only on the Pioneer's onboard computer. It installs a lightweight version of the drivers without heavy simulation tools (Gazebo/MobileSim) to save resources.
+
+```bash
+# Clone the repository
+git clone -b p3dx-enabled https://github.com/JPLDevMaster/p2os2.git
+cd p2os2
+
+# Run the robot-only installer
+chmod +x p2os2_installer.sh
+./p2os2_installer.sh
+```
+
+## 🔧 Manual Installation (Reference)
+
+If you prefer to install manually or customize your setup, follow these steps.
 
 1. **Create a Colcon Workspace:**
 ```bash
 mkdir -p ~/pioneer_ws/src
 cd ~/pioneer_ws/src
-
 ```
-
 
 2. **Clone the Repository:**
 ```bash
 git clone https://github.com/JPLDevMaster/p2os2.git
 cd p2os2
 git checkout p3dx-enabled
-
 ```
-
 
 3. **Build the Workspace:**
 ```bash
 cd ~/pioneer_ws
 colcon build --symlink-install
 source install/setup.bash
-
 ```
-
-
 
 ---
 
@@ -72,7 +97,6 @@ To launch the simulation:
 
 ```bash
 ros2 launch p2os_urdf pioneer3dx_gz_launch.py
-
 ```
 
 This will spawn the Pioneer 3-DX in Gazebo Harmonic with the necessary transforms and controller interfaces active.
@@ -92,7 +116,6 @@ You will need `socat` to create a virtual serial tunnel and **MobileSim** to emu
 * **Install socat:**
 ```bash
 sudo apt install socat
-
 ```
 
 
@@ -104,7 +127,6 @@ Run MobileSim in "no map" mode to expose the TCP interface:
 
 ```bash
 MobileSim -nomap
-
 ```
 
 ### 3. Create a Virtual Serial Tunnel
@@ -113,7 +135,6 @@ Because `p2os_driver` expects a serial port but MobileSim uses TCP, we use `soca
 
 ```bash
 socat -d -d pty,link=$HOME/ttyPioneer,raw,echo=0 tcp:localhost:8101
-
 ```
 
 ### 4. Launch the Driver
@@ -122,7 +143,6 @@ The launcher has been updated to accept a `port` argument. Launch the driver poi
 
 ```bash
 ros2 launch p2os_bringup p2os_driver_launch.py port:=$HOME/ttyPioneer
-
 ```
 
 ### 5. Verification
@@ -137,7 +157,6 @@ ros2 topic pub --once /cmd_motor_state p2os_msgs/msg/MotorState "{state: 1}"
 
 # Send Velocity Command (Move forward and rotate).
 ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, angular: {z: 0.0}}"
-
 ```
 
 ---
