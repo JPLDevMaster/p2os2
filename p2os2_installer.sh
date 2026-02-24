@@ -295,7 +295,7 @@ HOTSPOT_SSID="Pioneer-Hotspot"
 HOTSPOT_IP="10.42.0.1"
 echo -e "${BLUE}[INFO] Creating Fallback Hotspot: $HOTSPOT_SSID ...${RESET}"
 sudo nmcli con add type wifi ifname wlan0 con-name "Hotspot-Fallback" ssid "$HOTSPOT_SSID" mode ap
-sudo nmcli con modify "Hotspot-Fallback" wifi-sec.key-mgmt wpa-psk wifi-sec.psk "pioneer"
+sudo nmcli con modify "Hotspot-Fallback" wifi-sec.key-mgmt wpa-psk wifi-sec.psk "pioneer-robot"
 sudo nmcli con modify "Hotspot-Fallback" ipv4.addresses "$HOTSPOT_IP/24" ipv4.method shared
 # Set Low Priority (10).
 sudo nmcli con modify "Hotspot-Fallback" connection.autoconnect-priority 10
