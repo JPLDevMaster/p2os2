@@ -68,12 +68,23 @@ DEFAULT_GW=$(echo "$STATIC_IP" | cut -d'.' -f1-3).1
 read -p "Enter the Lab Gateway IP (Default: $DEFAULT_GW): " USER_GW_INPUT
 TARGET_GATEWAY=${USER_GW_INPUT:-$DEFAULT_GW}
 
+DOMAIN_ID=""
+while [[ ! "$DOMAIN_ID" =~ ^[0-9]+$ ]] || [ "$DOMAIN_ID" -lt 0 ] || [ "$DOMAIN_ID" -gt 101 ]; do
+    read -p "[P2OS]: Enter the ROS_DOMAIN_ID (0-101) for this robot (Default: 0): " INPUT_ID
+    DOMAIN_ID=${INPUT_ID:-0}
+    
+    if [[ ! "$DOMAIN_ID" =~ ^[0-9]+$ ]] || [ "$DOMAIN_ID" -lt 0 ] || [ "$DOMAIN_ID" -gt 101 ]; then
+        echo -e "${RED}[ERROR] ROS_DOMAIN_ID must be a number between 0 and 101.${RESET}"
+    fi
+done
+
 echo ""
 echo -e "[Config] Workspace:  ${BOLD}$WORKSPACE_DIR${RESET}"
 echo -e "[Config] Swap Size:  ${BOLD}$SWAP_SIZE${RESET}"
 echo -e "[Config] Wi-Fi SSID: ${BOLD}$TARGET_SSID${RESET}"
 echo -e "[Config] Static IP:  ${BOLD}$STATIC_IP${RESET}"
 echo -e "[Config] Gateway:    ${BOLD}$TARGET_GATEWAY${RESET}"
+echo -e "[Config] ROS_DOMAIN_ID: ${BOLD}$DOMAIN_ID${RESET}"
 echo ""
 
 echo -e "[P2OS]: Workspace will be created at: ${BOLD}$WORKSPACE_DIR${RESET}"
@@ -222,9 +233,8 @@ echo "" >> ~/.bashrc
 echo "$MARKER_START" >> ~/.bashrc
 echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 echo "source $WORKSPACE_DIR/install/local_setup.bash" >> ~/.bashrc
-# --- NEW: Network reset alias ---
+echo "export ROS_DOMAIN_ID=$DOMAIN_ID" >> ~/.bashrc
 echo "alias reset_network='sudo nmcli con delete \"Lab-Connection\" && sudo nmcli con delete \"Hotspot-Fallback\" && echo \"Profiles deleted. Reverting to defaults.\"' " >> ~/.bashrc
-# --------------------------------
 echo "$MARKER_END" >> ~/.bashrc
 
 echo -e "${BLUE}[INFO] Added workspace sourcing to ~/.bashrc${RESET}"
@@ -325,8 +335,9 @@ echo -e "   Common port: /dev/ttyUSB0"
 echo ""
 echo -e "3. ${BOLD}Network Configuration:${RESET}"
 echo -e "   - Priority Network: $TARGET_SSID (Static IP: $STATIC_IP)"
-echo -e "   - Fallback Network: $HOTSPOT_SSID (Password: 'pioneer')"
+echo -e "   - Fallback Network: $HOTSPOT_SSID (Password: 'pioneer-robot')"
 echo -e "   - Note: The static IP is only for Wi-Fi. Ethernet will still use DHCP."
+echo -e "   - ROS_DOMAIN_ID: $DOMAIN_ID"
 echo ""
 echo -e "4. ${BOLD}Reboot Required:${RESET}"
 echo -e "   Please reboot to apply user permission and network changes."
