@@ -4,8 +4,9 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    # Create the LaunchConfiguration variable to capture the value.
+    # Create the LaunchConfiguration variables to capture the values.
     port_config = LaunchConfiguration('port')
+    use_sonar_config = LaunchConfiguration('use_sonar')
 
     return LaunchDescription([
         # Declare the argument so we can use 'port:=...' in the terminal.
@@ -13,6 +14,12 @@ def generate_launch_description():
             'port',
             default_value='/dev/ttyUSB0',
             description='Serial port for the p2os_driver'
+        ),
+        # Declare the argument to make use_sonar configurable (it was harcoded before).
+        DeclareLaunchArgument(
+            'use_sonar',
+            default_value=True,
+            description='Set to "true" for sonar usage and "false" for null messages.'
         ),
 
         Node(
@@ -23,7 +30,7 @@ def generate_launch_description():
                 ('pose', 'odom')
             ],
             parameters=[
-                {'use_sonar': False},
+                {'use_sonar': use_sonar_config}, # Use the captured value.
                 {'port': port_config}  # Use the captured value.
             ],
             arguments=['--ros-args', '--log-level', 'INFO']
