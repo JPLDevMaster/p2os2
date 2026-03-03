@@ -18,7 +18,7 @@ def generate_launch_description():
         # Declare the argument to make use_sonar configurable (it was harcoded before).
         DeclareLaunchArgument(
             'use_sonar',
-            default_value=True,
+            default_value='True',
             description='Set to "true" for sonar usage and "false" for null messages.'
         ),
 
