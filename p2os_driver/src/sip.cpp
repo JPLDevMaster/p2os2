@@ -121,7 +121,16 @@ void SIP::FillStandard(ros_p2os_data_t * data)
   data->sonar.ranges_count = static_cast<int>(sonarreadings);
   data->sonar.ranges.clear();
   for (int i = 0; i < data->sonar.ranges_count; i++) {
-    data->sonar.ranges.emplace_back(sonars[i] / 1e3);
+    if (sonars[i] >= 5000) {
+      // Out of range (Clear space) or too close -> NaN.
+      data->sonar.ranges.emplace_back(std::numeric_limits<double>::quiet_NaN());
+    } else if (sonars[i] == 0) {
+      // Other possible errors -> NaN.
+      data->sonar.ranges.emplace_back(std::numeric_limits<double>::quiet_NaN());
+    } else {
+      // Valid reading in meters.
+      data->sonar.ranges.emplace_back(sonars[i] / 1e3);
+    }
   }
 
   ///////////////////////////////////////////////////////////////
