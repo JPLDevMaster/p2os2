@@ -449,6 +449,9 @@ void SIP::ParseStandard(unsigned char * buffer)
 
     // update the sonar readings array with the new readings
     for (unsigned char i = 0; i < numSonars; i++) {
+      RCLCPP_DEBUG(rclcpp::get_logger("P2OsDriver"), 
+          "Parsing Sonar Loop %d: Found Sonar ID %d at byte offset %d", 
+          i, buffer[cnt], cnt);
       sonars[buffer[cnt]] = static_cast<uint16_t>(
         rint((buffer[cnt + 1] | (buffer[cnt + 2] << 8)) *
         PlayerRobotParams[param_idx].RangeConvFactor));
