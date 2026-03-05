@@ -413,7 +413,11 @@ void SIP::ParseStandard(unsigned char * buffer)
     rint(((int16_t)(buffer[cnt] | (buffer[cnt + 1] << 8))) *
       PlayerRobotParams[param_idx].AngleConvFactor);
   cnt += sizeof(int16_t);
-  motors_enabled = 1;
+
+  ptu = (buffer[cnt] | (buffer[cnt + 1] << 8));
+  motors_enabled = buffer[cnt];
+  sonar_flag = buffer[cnt + 1];
+  cnt += sizeof(int16_t);
 
   // compass = buffer[cnt]*2;
   if (buffer[cnt] != 255 && buffer[cnt] != 0 && buffer[cnt] != 181) {
@@ -445,9 +449,10 @@ void SIP::ParseStandard(unsigned char * buffer)
 
     // update the sonar readings array with the new readings
     for (unsigned char i = 0; i < numSonars; i++) {
+      int raw_id = buffer[cnt];
+      int raw_range = (buffer[cnt + 1] | (buffer[cnt + 2] << 8));
       RCLCPP_DEBUG(rclcpp::get_logger("P2OsDriver"), 
-          "Parsing Sonar Loop %d: Found Sonar ID %d at byte offset %d", 
-          i, buffer[cnt], cnt);
+          "Raw Sonar Byte - Index: %d, ID: %d, Range: %d", i, raw_id, raw_range);
       sonars[buffer[cnt]] = static_cast<uint16_t>(
         rint((buffer[cnt + 1] | (buffer[cnt + 2] << 8)) *
         PlayerRobotParams[param_idx].RangeConvFactor));
