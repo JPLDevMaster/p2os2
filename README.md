@@ -14,6 +14,13 @@ We are actively working on verifying these systems. Validated configurations cur
 
 P2OS is the essential driver interface for Pioneer robots utilizing the ARCOS controller. This update brings P2OS into the ROS2 ecosystem. My primary goal was to get the chassis moving and the sonars working. All SIP packets and related ROS2 messages pertaining to currently untested systems (Arm, Gripper, PTZ) were preserved in the migration logic, but remain unverified.
 
+### ⚠️ Note on Sonar Readings (NaN)
+Using an adaptation of standard ROS 2 sensor conventions (REP-0117), this driver outputs `NaN` (Not a Number) for invalid sonar readings. You will see `NaN` populated in the `/sonar` topic array under two conditions:
+1. **Out of Range:** The object is further than the 5.0-meter maximum hardware range.
+2. **Blind Spot:** The object is too close (under ~10cm) for the transducer to physically process the returning echo.
+
+This intentional `NaN` handling ensures that downstream navigation stacks (like Nav2 or SLAM) gracefully ignore these readings rather than mapping them as false obstacles or clearing existing walls from the costmap.
+
 ## Packages
 
 This repository currently includes the following core packages:
