@@ -63,6 +63,25 @@ chmod +x p2os2_installer.sh
 ./p2os2_installer.sh
 ```
 
+### What the Robot Installer Configures
+
+When you run the `p2os2_installer.sh` script, it will prompt you for several configuration parameters to fully set up the onboard computer. Here is what you will be asked to provide:
+
+| Parameter | Default | Description |
+| :--- | :--- | :--- |
+| **Workspace Path** | `~/pioneer_ws` | The directory where the ROS 2 workspace will be cloned and built. |
+| **SWAP Size** | `2GB` | Creates a swap file to prevent out-of-memory errors during C++ compilation. Enter `0` to skip. |
+| **Lab/Main Wi-Fi (SSID)** | *None (Required)* | The name of your primary local Wi-Fi network. |
+| **Wi-Fi Password** | *None (Required)* | The WPA2 password for your primary network (minimum 8 characters). |
+| **Static IP** | *None (Required)* | A unique static IP address for the robot on the primary network (e.g., `192.168.1.50`). |
+| **Gateway IP** | *Auto-calculated* | The network router's IP address (usually ends in `.1`). |
+| **ROS_DOMAIN_ID** | `0` | The ROS 2 domain ID (0-101) used to isolate this robot's ROS traffic from other devices. |
+
+**📡 Automatic Failover Hotspot** To prevent the robot from becoming inaccessible if the primary Wi-Fi drops, the installer automatically configures a fallback network. If the robot cannot connect to the preset Wi-Fi on boot, it will broadcast its own hotspot so you can still SSH into it:
+* **Network Name:** `Pioneer-Hotspot`
+* **Password:** `pioneer-robot`
+* **Robot IP Address:** `10.42.0.1`
+
 ## 🔧 Manual Installation (Reference)
 
 If you prefer to install manually or customize your setup, follow these steps.
@@ -161,6 +180,18 @@ ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, an
 
 ---
 
+## 🛠️ Real Robot Launch
+
+Similarly to the emulation section, you may launch the driver using the following command:
+
+```bash
+ros2 launch p2os_bringup p2os_driver_launch.py
+```
+
+where the arguments and their default values are explained in the next table.
+
+---
+
 ## 🛠️ Launch Configuration Parameters
 
 The `p2os_bringup` and `p2os_urdf` launch files are being refactored to support several arguments to configure the serial connection and simulation settings. 
@@ -169,6 +200,8 @@ The arguments will be added to the following table as soon as the workflow is te
 | Parameter Name | Default Value | Description |
 | --- | --- | --- |
 | `port` | `/dev/ttyUSB0` | The serial port device to connect to (e.g., `/dev/ttyUSB0` for the real robot, `$HOME/ttyPioneer` for emulation). |
+| `use_sonar` | `True` | Set to "true" for sonar usage and "false" for null messages. |
+| `log_level` | `INFO` | Log level parameter. Set to "DEBUG" for more detailed logging. |
 
 ---
 
