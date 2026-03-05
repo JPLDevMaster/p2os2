@@ -413,11 +413,7 @@ void SIP::ParseStandard(unsigned char * buffer)
     rint(((int16_t)(buffer[cnt] | (buffer[cnt + 1] << 8))) *
       PlayerRobotParams[param_idx].AngleConvFactor);
   cnt += sizeof(int16_t);
-
-  ptu = (buffer[cnt] | (buffer[cnt + 1] << 8));
-  motors_enabled = buffer[cnt];
-  sonar_flag = buffer[cnt + 1];
-  cnt += sizeof(int16_t);
+  motors_enabled = 1;
 
   // compass = buffer[cnt]*2;
   if (buffer[cnt] != 255 && buffer[cnt] != 0 && buffer[cnt] != 181) {
