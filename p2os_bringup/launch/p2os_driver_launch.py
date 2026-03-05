@@ -7,6 +7,7 @@ def generate_launch_description():
     # Create the LaunchConfiguration variables to capture the values.
     port_config = LaunchConfiguration('port')
     use_sonar_config = LaunchConfiguration('use_sonar')
+    log_level_config = LaunchConfiguration('log_level')
 
     return LaunchDescription([
         # Declare the argument so we can use 'port:=...' in the terminal.
@@ -21,6 +22,12 @@ def generate_launch_description():
             default_value='True',
             description='Set to "true" for sonar usage and "false" for null messages.'
         ),
+        # Declare the argument define the log level.
+        DeclareLaunchArgument(
+            'log_level',
+            default_value='INFO',
+            description='Log level parameter. Set to "DEBUG" for more detailed logging.'
+        ),
 
         Node(
             package='p2os_driver',
@@ -33,6 +40,6 @@ def generate_launch_description():
                 {'use_sonar': use_sonar_config}, # Use the captured value.
                 {'port': port_config}  # Use the captured value.
             ],
-            arguments=['--ros-args', '--log-level', 'INFO']
+            arguments=['--ros-args', '--log-level', log_level_config] 
         ),            
     ])

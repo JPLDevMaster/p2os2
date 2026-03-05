@@ -8,7 +8,7 @@ def generate_launch_description():
             executable='p2os_driver',
             name='p2os_driver',
             parameters=[
-                {'use_sonar': False}
+                {'use_sonar': True}
             ],
             arguments=['--ros-args', '--log-level', 'INFO'],
             remappings=[('/pose','/odom')]
