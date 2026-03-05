@@ -436,12 +436,21 @@ void SIP::ParseStandard(unsigned char * buffer)
       if ((sonarIndex + 1) > maxSonars) {maxSonars = sonarIndex + 1;}
     }
 
+    if (maxSonars > 32) { 
+      maxSonars = 32; // Pioneers have an absolute maximum of 32 sonars.
+    }
+
     // if necessary make more space in the array and preserve existing readings
     if (maxSonars > sonarreadings) {
       uint16_t * newSonars = new uint16_t[maxSonars];
       for (unsigned char i = 0; i < sonarreadings; i++) {
         newSonars[i] = sonars[i];
       }
+
+      for (unsigned char i = sonarreadings; i < maxSonars; i++) {
+        newSonars[i] = 5000;
+      }
+
       if (sonars != NULL) {delete[] sonars;}
       sonars = newSonars;
       sonarreadings = maxSonars;
@@ -451,11 +460,14 @@ void SIP::ParseStandard(unsigned char * buffer)
     for (unsigned char i = 0; i < numSonars; i++) {
       int raw_id = buffer[cnt];
       int raw_range = (buffer[cnt + 1] | (buffer[cnt + 2] << 8));
+      unsigned char s_idx = buffer[cnt];
       RCLCPP_DEBUG(rclcpp::get_logger("P2OsDriver"), 
           "Raw Sonar Byte - Index: %d, ID: %d, Range: %d", i, raw_id, raw_range);
-      sonars[buffer[cnt]] = static_cast<uint16_t>(
-        rint((buffer[cnt + 1] | (buffer[cnt + 2] << 8)) *
-        PlayerRobotParams[param_idx].RangeConvFactor));
+      if (s_idx < sonarreadings) { 
+        sonars[s_idx] = static_cast<uint16_t>(
+          rint((buffer[cnt + 1] | (buffer[cnt + 2] << 8)) *
+          PlayerRobotParams[param_idx].RangeConvFactor));
+      }
       cnt += sizeof(unsigned char) + sizeof(uint16_t);
     }
   }
