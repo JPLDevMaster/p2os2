@@ -178,7 +178,7 @@ echo -e "${BLUE}[INFO] Installing dependencies (Skipping Simulation tools)...${R
 rosdep install --from-paths src --ignore-src -r -y \
   --skip-keys "gazebo_ros gz_plugin_vendor gz_sim_vendor ros_gz_bridge ros_gz_sim ros_gz_interfaces"
 
-# --- NEW: Dynamic SWAP creation before build ---
+# Dynamic SWAP creation before build.
 if [[ "$SWAP_SIZE" == "0" ]]; then
     echo -e "${BLUE}[INFO] User selected 0. Removing any existing swap...${RESET}"
     if [ -f /swapfile ]; then
