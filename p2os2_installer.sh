@@ -148,7 +148,7 @@ echo -e "${GREEN}[Step 4] Setting up Workspace and Cloning P2OS...${RESET}"
 mkdir -p "$WORKSPACE_DIR/src"
 cd "$WORKSPACE_DIR/src"
 
-# Clone the repository.
+# Clone the main repository.
 if [ ! -d "p2os2" ]; then
     echo -e "${BLUE}[INFO] Cloning p2os2 repository...${RESET}"
     git clone -b p3dx-enabled https://github.com/JPLDevMaster/p2os2.git
@@ -156,6 +156,17 @@ else
     echo -e "${BLUE}[INFO] p2os2 repo already exists. Pulling latest...${RESET}"
     cd p2os2
     git checkout p3dx-enabled
+    git pull
+    cd ..
+fi
+
+# Clone the Hokuyo (LiDAR) repository.
+if [ ! -d "urg_node2" ]; then
+    echo -e "${BLUE}[INFO] Cloning urg_node2 repository...${RESET}"
+    git clone https://github.com/Hokuyo-aut/urg_node2.git
+else
+    echo -e "${BLUE}[INFO] urg_node2 repo already exists. Pulling latest...${RESET}"
+    cd urg_node2
     git pull
     cd ..
 fi
