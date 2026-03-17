@@ -163,13 +163,19 @@ fi
 # Clone the Hokuyo (LiDAR) repository.
 if [ ! -d "urg_node2" ]; then
     echo -e "${BLUE}[INFO] Cloning urg_node2 repository...${RESET}"
-    git clone https://github.com/Hokuyo-aut/urg_node2.git
+    git clone --recursive https://github.com/Hokuyo-aut/urg_node2.git
+    rosdep update
+    rosdep install -i --from-paths urg_node2
 else
     echo -e "${BLUE}[INFO] urg_node2 repo already exists. Pulling latest...${RESET}"
     cd urg_node2
     git pull
     cd ..
 fi
+
+# Change the launch configuration from ethernet parameters to serial.
+echo -e "${BLUE}[INFO] Patching urg_node2.launch.py to use Serial config...${RESET}"
+sed -i "s/'params_ether.yaml'/'params_serial.yaml'/g" urg_node2/launch/urg_node2.launch.py
 
 echo ""
 
