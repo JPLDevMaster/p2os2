@@ -21,9 +21,13 @@
  */
 #ifndef P2OS_DRIVER__P2OS_HPP_
 #define P2OS_DRIVER__P2OS_HPP_
+#include <cmath>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
+#include <termios.h>
 #include <pthread.h>
 #include <sys/time.h>
-
 #include "rclcpp/rclcpp.hpp"
 #include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/twist.hpp>
@@ -34,6 +38,8 @@
 #include <p2os_msgs/msg/dio.hpp>
 #include <p2os_msgs/msg/aio.hpp>
 #include <p2os_msgs/msg/battery_state.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/point_cloud2_iterator.hpp>
 
 //#include <diagnostic_updater/publisher.h>
 //#include <diagnostic_updater/diagnostic_updater.h>
@@ -156,6 +162,7 @@ protected:
   rclcpp::Publisher<p2os_msgs::msg::GripperState>::SharedPtr grip_state_pub_;
   rclcpp::Publisher<p2os_msgs::msg::PTZState>::SharedPtr ptz_state_pub_;
   rclcpp::Publisher<p2os_msgs::msg::SonarArray>::SharedPtr sonar_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr sonar_pc_pub_;
   rclcpp::Publisher<p2os_msgs::msg::AIO>::SharedPtr aio_pub_;
   rclcpp::Publisher<p2os_msgs::msg::DIO>::SharedPtr dio_pub_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pose_pub_;
@@ -211,6 +218,8 @@ protected:
   double lastPulseTime;
   //! Use the sonar array?
   bool use_sonar_;
+
+  void convertSonarArrayToPointCloud2(const p2os_msgs::msg::SonarArray msg);
 
   //P2OSPtz ptz_;
 

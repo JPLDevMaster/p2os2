@@ -19,15 +19,8 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#include <termios.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
 
-#include <rclcpp/rclcpp.hpp>
 #include "p2os_driver/p2os.hpp"
-
-#include <string>
 
 /*P2OSNode::P2OSNode(rclcpp::Node nh)
 : n(nh),
@@ -170,6 +163,7 @@ P2OSNode::P2OSNode(const std::string & node_name)
   grip_state_pub_ = this->create_publisher<p2os_msgs::msg::GripperState>("gripper_state", 10);
   ptz_state_pub_ = this->create_publisher<p2os_msgs::msg::PTZState>("ptz_state", 10);
   sonar_pub_ = this->create_publisher<p2os_msgs::msg::SonarArray>("sonar", 10);
+  sonar_pc_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("sonar_pointcloud", 10);
   aio_pub_ = this->create_publisher<p2os_msgs::msg::AIO>("aio", 10);
   dio_pub_ = this->create_publisher<p2os_msgs::msg::DIO>("dio", 10);
 
@@ -775,9 +769,13 @@ P2OSNode::StandardSIPPutData(rclcpp::Time ts)
   batt_pub_->publish(p2os_data.batt);
   mstate_pub_->publish(p2os_data.motors);
 
-  // put sonar data
+  // Publish sonar data (at the moment is is commented out to reduce CPU load).
+  // We need only use the PointCloud2 messages.
   p2os_data.sonar.header.stamp = ts;
-  sonar_pub_->publish(p2os_data.sonar);
+  // sonar_pub_->publish(p2os_data.sonar);
+
+  // Convert the sonar messages from SonarArray into PointCloud2.
+  convertSonarArrayToPointCloud2(p2os_data.sonar);
 
   // put aio data
   aio_pub_->publish(p2os_data.aio);
@@ -790,6 +788,61 @@ P2OSNode::StandardSIPPutData(rclcpp::Time ts)
 
   // put bumper data
   // put compass data
+}
+
+void P2OSNode::convertSonarArrayToPointCloud2(const p2os_msgs::msg::SonarArray msg)
+{
+    // Validate if the publisher has been initialized.
+    if (!sonar_pc_pub_) {
+        return;
+    }
+
+    sensor_msgs::msg::PointCloud2 cloud_msg;
+    
+    // Inherit the exact timestamp from the incoming sonar message.
+    cloud_msg.header.stamp = msg.header.stamp; 
+    cloud_msg.header.frame_id = "base_link"; // ! This could be improved with better TFs.
+  
+    // Set up the PointCloud2 modifier to handle the memory formatting.
+    sensor_msgs::PointCloud2Modifier modifier(cloud_msg);
+    modifier.setPointCloud2FieldsByString(1, "xyz");
+    modifier.resize(msg.ranges_count);
+
+    // Iterators to quickly write to the x, y, z fields.
+    sensor_msgs::PointCloud2Iterator<float> iter_x(cloud_msg, "x");
+    sensor_msgs::PointCloud2Iterator<float> iter_y(cloud_msg, "y");
+    sensor_msgs::PointCloud2Iterator<float> iter_z(cloud_msg, "z");
+
+    // Pioneer 3-DX Standard Front Sonar Angles (in Radians).
+    const std::vector<double> sonar_angles = {
+        1.5708,  0.8727,  0.5236,  0.1745,
+       -0.1745, -0.5236, -0.8727, -1.5708
+    };
+
+    // Build the cloud.
+    for (int i = 0; i < msg.ranges_count; ++i, ++iter_x, ++iter_y, ++iter_z) {
+        double range = msg.ranges[i];
+      
+        // Filter out invalid readings (NaN or out of bounds).
+        if (std::isnan(range) || range < 0.1 || range > 5.0) {
+            *iter_x = 0.0; 
+            *iter_y = 0.0; 
+            *iter_z = 0.0; 
+            continue;
+        }
+
+        // Convert Polar (Range, Angle) to Cartesian (X, Y).
+        double angle = (i < sonar_angles.size()) ? sonar_angles[i] : 0.0;
+      
+        *iter_x = range * std::cos(angle);
+        *iter_y = range * std::sin(angle);
+        *iter_z = 0.2; // Height of the sonars off the ground.
+        // In this case the sonar height is fixed because sonars are 2D.
+        // This way we can use this information as we use lidar's.
+    }
+
+    // Publish the PointCloud.
+    sonar_pc_pub_->publish(cloud_msg);
 }
 
 /* send the packet, then receive and parse an SIP */
