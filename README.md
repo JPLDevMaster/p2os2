@@ -181,7 +181,7 @@ To test bidirectional communication, you can manually enable the motors and send
 # Enable Motors.
 ros2 topic pub --once /cmd_motor_state p2os_msgs/msg/MotorState "{state: 1}"
 
-# Send Velocity Command (Move forward and rotate).
+# Send Velocity Command (Move forward).
 ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, angular: {z: 0.0}}"
 ```
 
@@ -196,6 +196,46 @@ ros2 launch p2os_bringup p2os_driver_launch.py
 ```
 
 where the arguments and their default values are explained in the next table.
+
+### Verification
+
+You can now verify that the driver is publishing standard topics (Battery, Sonar, Odometry, etc.) via `ros2 topic list`.
+
+To test bidirectional communication, you can manually enable the motors and send a velocity command:
+
+```bash
+# Enable Motors.
+ros2 topic pub --once /cmd_motor_state p2os_msgs/msg/MotorState "{state: 1}"
+
+# Send Velocity Command (Move forward).
+ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, angular: {z: 0.0}}"
+```
+
+To start the Hokuyo driver (urg_node2) you just need to run the following command:
+
+```bash
+ros2 launch urg_node2 urg_node2.launch.py
+```
+
+and you may validate that the topic is being correctly published by running the command:
+
+```bash
+ros2 topic echo /scan
+```
+
+To visualize the sonar messages, follow the following steps:
+
+1. Run the ```rviz2``` command.
+2. In the Displays panel on the left, change the Fixed Frame to base_link (or another, given you understand the workings of TFs).
+3. Click the Add button at the bottom left.
+4. Select the "By topic" tab.
+5. Scroll down to the ```/sonar``` topic and select the appropriate display type (PointCloud).
+
+If you eventually save a pre-configured `.rviz` file locally that already has these topics and frames set up, you can just boot rviz up with that file directly:
+
+```bash
+rviz2 -d {your_file_path}
+```
 
 ---
 
