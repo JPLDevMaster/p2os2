@@ -229,7 +229,7 @@ To visualize the sonar messages, follow the following steps:
 2. In the Displays panel on the left, change the Fixed Frame to base_link (or another, given you understand the workings of TFs).
 3. Click the Add button at the bottom left.
 4. Select the "By topic" tab.
-5. Scroll down to the ```/sonar``` topic and select the appropriate display type (PointCloud).
+5. Scroll down to the ```/sonar_pointcloud``` topic and select the appropriate display type (PointCloud2).
 
 If you eventually save a pre-configured `.rviz` file locally that already has these topics and frames set up, you can just boot rviz up with that file directly:
 
