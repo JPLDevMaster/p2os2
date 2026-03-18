@@ -211,7 +211,7 @@ ros2 topic pub --once /cmd_motor_state p2os_msgs/msg/MotorState "{state: 1}"
 ros2 topic pub --rate 10 /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.5}, angular: {z: 0.0}}"
 ```
 
-To start the Hokuyo driver (urg_node2) you just need to run the following command:
+To start the Hokuyo driver (urg_node2) you just need to run the following command (assuming you have the Hokuyo connected to the Pioneer):
 
 ```bash
 ros2 launch urg_node2 urg_node2.launch.py
@@ -223,7 +223,7 @@ and you may validate that the topic is being correctly published by running the 
 ros2 topic echo /scan
 ```
 
-To visualize the sonar messages, follow the following steps:
+To visualize the sonar messages, follow these steps:
 
 1. Run the ```rviz2``` command.
 2. In the Displays panel on the left, change the Fixed Frame to base_link (or another, given you understand the workings of TFs).
