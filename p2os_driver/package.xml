@@ -16,6 +16,7 @@
   <author email="hallen@kns.com">Hunter L. Allen</author>
   <author email="dfseifer@usc.edu">David Feil-Seifer</author>
   <author email="asynodin@mech.upatras.gr">Aris Synodinos</author>
+  <author email="joao.penha.lopes@tecnico.ulisboa.pt">João Penha Lopes</author>
   <author>Brian Gerkey</author>
   <author>Kasper Stoy</author>
   <author>Richard Vaughan</author>
@@ -28,13 +29,14 @@
 
   <exec_depend>rosidl_default_runtime</exec_depend>
 
-  <depend>std_msgs</depend>
-  <depend>p2os_msgs</depend>
-  <depend>geometry_msgs</depend>
-  <depend>nav_msgs</depend>
-  <depend>kdl_parser</depend>
-  <depend>tf2_ros</depend>
   <depend>rclcpp</depend>
+  <depend>tf2_ros</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>p2os_msgs</depend>
+  <depend>kdl_parser</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
 
   
   <member_of_group>rosidl_interface_packages</member_of_group>
