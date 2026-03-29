@@ -38,7 +38,6 @@ P2OSNode::P2OSNode(const std::string & node_name)
    *  This brings up the P2OS system for ROS operation.
    */
 
-  
   //rclcpp::Node n_private("~");
   ///n_private.param(std::string("odom_frame_id"), odom_frame_id, std::string("odom"));
   this->declare_parameter<std::string>("odom_frame_id", "odom");
@@ -47,23 +46,28 @@ P2OSNode::P2OSNode(const std::string & node_name)
   //n_private.param(std::string("base_link_frame_id"), base_link_frame_id, std::string("base_link"));
   this->declare_parameter<std::string>("base_link_frame_id", "base_link");
   this->get_parameter("base_link_frame_id", base_link_frame_id);
-  // Use sonar
+
+  // Use sonar.
   //n_private.param("use_sonar", use_sonar_, false);
   this->declare_parameter<bool>("use_sonar", false);
   this->get_parameter("use_sonar", use_sonar_);
-  // read in config options
+
+  // Read in config options.
   // bumpstall
   //n_private.param("bumpstall", bumpstall, -1);
   this->declare_parameter<int>("bumpstall", -1);
   this->get_parameter("bumpstall", bumpstall);
+
   // pulse
   //n_private.param("pulse", pulse, -1.0);
   this->declare_parameter<double>("pulse", -1.0);
   this->get_parameter("pulse", pulse);
+
   //desired_freq = 10;
   this->declare_parameter<double>("desired_freq", 10);
   this->get_parameter("desired_freq", desired_freq);
-  //it seems so weird to me (kv) that these gains aren't doubles:
+
+  // It seems weird that these gains aren't doubles, but that's how the original driver had them.
   // rot_kp
   //n_private.param("rot_kp", rot_kp, -1);
   this->declare_parameter<int>("rot_kp", -1);
@@ -86,17 +90,17 @@ P2OSNode::P2OSNode(const std::string & node_name)
   this->get_parameter("trans_kv", trans_kv);
   // trans_ki
   //n_private.param("trans_ki", trans_ki, -1);
-   this->declare_parameter<int>("trans_ki", -1);
+  this->declare_parameter<int>("trans_ki", -1);
   this->get_parameter("trans_ki", trans_ki);
-  
 
   std::string def = DEFAULT_P2OS_PORT;
   //n_private.param("port", psos_serial_port, def);
   this->declare_parameter<std::string>("port", def);
   this->get_parameter("port", psos_serial_port);
   RCLCPP_INFO(rclcpp::get_logger("P2OsDriver"), "using serial port: [%s]", psos_serial_port.c_str());
+
   //n_private.param("use_tcp", psos_use_tcp, false);
-   this->declare_parameter<bool>("use_tcp", false);
+  this->declare_parameter<bool>("use_tcp", false);
   this->get_parameter("use_tcp", psos_use_tcp);
 
   std::string host = DEFAULT_P2OS_TCP_REMOTE_HOST;
@@ -106,9 +110,8 @@ P2OSNode::P2OSNode(const std::string & node_name)
   //n_private.param("tcp_remote_port", psos_tcp_port, DEFAULT_P2OS_TCP_REMOTE_PORT);
   this->declare_parameter<int>("tcp_remote_port", DEFAULT_P2OS_TCP_REMOTE_PORT);
   this->get_parameter("tcp_remote_port", psos_tcp_port);
-  
-  // radio
 
+  // radio
   ///n_private.param("radio", radio_modemp, 0);
   this->declare_parameter<int>("radio", 0);
   this->get_parameter("radio", radio_modemp);
@@ -117,61 +120,74 @@ P2OSNode::P2OSNode(const std::string & node_name)
   //n_private.param("joystick", joystick, 0);
   this->declare_parameter<int>("joystick", 0);
   this->get_parameter("joystick", joystick);
-  
+
   // direct_wheel_vel_control
   //n_private.param("direct_wheel_vel_control", direct_wheel_vel_control, 0);
   this->declare_parameter<int>("direct_wheel_vel_control", 0);
   this->get_parameter("direct_wheel_vel_control", direct_wheel_vel_control);
-  // max xpeed
+
+  // max xspeed
   double spd;
   //n_private.param("max_xspeed", spd, MOTOR_DEF_MAX_SPEED);
   this->declare_parameter<double>("max_xspeed", MOTOR_DEF_MAX_SPEED);
   this->get_parameter("max_xspeed", spd);
   motor_max_speed = static_cast<double>(rint(1e3 * spd));
+
   // max_yawspeed
   //n_private.param("max_yawspeed", spd, MOTOR_DEF_MAX_TURNSPEED);
   this->declare_parameter<double>("max_yawspeed", MOTOR_DEF_MAX_TURNSPEED);
   this->get_parameter("max_yawspeed", spd);
   motor_max_turnspeed = static_cast<int16_t>(rint(RTOD(spd)));
+
   // max_xaccel
   //n_private.param("max_xaccel", spd, 0.0);
   this->declare_parameter<double>("max_xaccel", 0.0);
   this->get_parameter("max_xaccel", spd);
   motor_max_trans_accel = static_cast<int16_t>(rint(1e3 * spd));
+
   // max_xdecel
   //n_private.param("max_xdecel", spd, 0.0);
   this->declare_parameter<double>("max_xdecel", 0.0);
   this->get_parameter("max_xdecel", spd);
   motor_max_trans_decel = static_cast<int16_t>(rint(1e3 * spd));
+
   // max_yawaccel
   //n_private.param("max_yawaccel", spd, 0.0);
   this->declare_parameter<double>("max_yawaccel", 0.0);
   this->get_parameter("max_yawaccel", spd);
   motor_max_rot_accel = static_cast<int16_t>(rint(RTOD(spd)));
+
   // max_yawdecel
   //n_private.param("max_yawdecel", spd, 0.0);
   this->declare_parameter<double>("max_yawdecel", 0.0);
   this->get_parameter("max_yawdecel", spd);
   motor_max_rot_decel = static_cast<int16_t>(rint(RTOD(spd)));
 
-  // advertise services - except i don't see any services in P2OS
-  
-  // create the publishers
-  pose_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("pose", 10);
-  batt_pub_ = this->create_publisher<p2os_msgs::msg::BatteryState>("battery_state", 10);
-  mstate_pub_ = this->create_publisher<p2os_msgs::msg::MotorState>("motor_state", 10);
+  // Create publishers.
+  pose_pub_       = this->create_publisher<nav_msgs::msg::Odometry>("pose", 10);
+  batt_pub_       = this->create_publisher<p2os_msgs::msg::BatteryState>("battery_state", 10);
+  mstate_pub_     = this->create_publisher<p2os_msgs::msg::MotorState>("motor_state", 10);
   grip_state_pub_ = this->create_publisher<p2os_msgs::msg::GripperState>("gripper_state", 10);
-  ptz_state_pub_ = this->create_publisher<p2os_msgs::msg::PTZState>("ptz_state", 10);
-  sonar_pub_ = this->create_publisher<p2os_msgs::msg::SonarArray>("sonar", 10);
-  sonar_pc_pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("sonar_pointcloud", 10);
-  aio_pub_ = this->create_publisher<p2os_msgs::msg::AIO>("aio", 10);
-  dio_pub_ = this->create_publisher<p2os_msgs::msg::DIO>("dio", 10);
+  ptz_state_pub_  = this->create_publisher<p2os_msgs::msg::PTZState>("ptz_state", 10);
+  sonar_pub_      = this->create_publisher<p2os_msgs::msg::SonarArray>("sonar", 10);
+  aio_pub_        = this->create_publisher<p2os_msgs::msg::AIO>("aio", 10);
+  dio_pub_        = this->create_publisher<p2os_msgs::msg::DIO>("dio", 10);
 
-  //instantiate the TransformBroadcaster
+  // * Each sonar needs its own publisher so RViz2 can show all 16 cones
+  // * simultaneously. Publishing everything on one topic means only the last
+  // * reading per cycle is visible, the others get overwritten before RViz2
+  // * can process them. Topics are named sonar_N/range following ROS convention.
+  for (int i = 0; i < P2OS_NUM_SONARS; ++i) {
+    sonar_range_pubs_.push_back(
+      this->create_publisher<sensor_msgs::msg::Range>(
+        "sonar_" + std::to_string(i) + "/range", 10));
+  }
+
+  // Instantiate the TransformBroadcaster.
   //odom_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this->get_node_base_interface());
   odom_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
-  
-  // subscribe to services
+
+  // Subscribe to command topics.
   /*
   cmdvel_sub_ = n.subscribe("cmd_vel", 1, &P2OSNode::cmdvel_cb, this);
   cmdmstate_sub_ = n.subscribe("cmd_motor_state", 1, &P2OSNode::cmdmotor_state,
@@ -187,11 +203,9 @@ P2OSNode::P2OSNode(const std::string & node_name)
   cmdmstate_sub_ = this->create_subscription<p2os_msgs::msg::MotorState>(
     "cmd_motor_state", 1, std::bind(&P2OSNode::cmdmotor_state_callback, this, std::placeholders::_1));
 
-  
   gripper_sub_ = this->create_subscription<p2os_msgs::msg::GripperState>(
     "gripper_control", 1, std::bind(&P2OSNode::gripper_callback, this, std::placeholders::_1));
 
-  
   ptz_cmd_sub_ = this->create_subscription<p2os_msgs::msg::PTZState>(
     "ptz_control", 1, std::bind(&P2OSPtz::callback, &ptz_, std::placeholders::_1));
 
@@ -201,7 +215,7 @@ P2OSNode::P2OSNode(const std::string & node_name)
   //diagnostic_.add("Motor Stall", this, &P2OSNode::check_stall);
   //diagnostic_.add("Battery Voltage", this, &P2OSNode::check_voltage);
 
-  // initialize robot parameters (player legacy)
+  // Initialise robot parameters (Player legacy).
   initialize_robot_params();
 } //end Constructor
 
@@ -230,7 +244,7 @@ void P2OSNode::check_and_set_motor_state()
   command[3] = 0;
   packet.Build(command, 4);
 
-  // Store the current motor state so that we can set it back
+  // Store the current motor state so that we can set it back.
   p2os_data.motors.state = cmdmotor_state_.state;
   SendReceive(&packet, false);
 }
@@ -242,7 +256,7 @@ void P2OSNode::check_and_set_gripper_state()
   }
   gripper_dirty_ = false;
 
-  // Send the gripper command
+  // Send the gripper command.
   unsigned char grip_val = (unsigned char) gripper_state_.grip.state;
   unsigned char grip_command[4];
 
@@ -254,7 +268,7 @@ void P2OSNode::check_and_set_gripper_state()
   grip_packet.Build(grip_command, 4);
   SendReceive(&grip_packet, false);
 
-  // Send the lift command
+  // Send the lift command.
   unsigned char lift_val = (unsigned char) gripper_state_.lift.state;
   unsigned char lift_command[4];
 
@@ -304,7 +318,7 @@ void P2OSNode::check_and_set_vel()
   int vx = static_cast<int>(cmdvel_.linear.x * 1e3);
   int va = static_cast<int>(rint(RTOD(cmdvel_.angular.z)));
 
-  // non-direct wheel control
+  // Non-direct wheel control.
   motorcommand[0] = VEL;
   motorcommand[1] = (vx >= 0) ? ARGINT : ARGNINT;
 
@@ -350,7 +364,11 @@ int P2OSNode::Setup()
 {
   int i;
   int bauds[] = {B9600, B38400, B19200, B115200, B57600};
-  int numbauds = sizeof(bauds);
+
+  // ! sizeof(bauds) returns the total byte size of the array, not the number
+  // ! of elements. On a 64-bit system with int=4 bytes this would be 20, not 5.
+  // ! Using the division form here gives us the actual element count.
+  int numbauds = sizeof(bauds) / sizeof(bauds[0]);
   int currbaud = 0;
   sippacket = NULL;
   lastPulseTime = 0.0;
@@ -373,9 +391,6 @@ int P2OSNode::Setup()
 
   char name[20], type[20], subtype[20];
   int cnt;
-
-
-  // use serial port
 
   RCLCPP_INFO(rclcpp::get_logger("P2OsDriver"), "P2OS connection opening serial port %s...", psos_serial_port.c_str());
 
@@ -417,8 +432,8 @@ int P2OSNode::Setup()
     this->psos_fd = -1;
     return 1;
   }
-  // Sync:
 
+  // Sync sequence, try each baud rate until the robot responds.
   int num_sync_attempts = 3;
   while (psos_state != READY) {
     switch (psos_state) {
@@ -428,8 +443,6 @@ int P2OSNode::Setup()
         packet.Send(this->psos_fd);
         //usleep(P2OS_CYCLETIME_USEC);
         rclcpp::sleep_for(std::chrono::microseconds(P2OS_CYCLETIME_USEC));
-
-
         break;
       case AFTER_FIRST_SYNC:
         RCLCPP_INFO(rclcpp::get_logger("P2OsDriver"), "turning off NONBLOCK mode...");
@@ -452,7 +465,7 @@ int P2OSNode::Setup()
         RCLCPP_WARN(rclcpp::get_logger("P2OsDriver"), "P2OS::Setup():shouldn't be here...");
         break;
     }
-    
+
     //usleep(P2OS_CYCLETIME_USEC);
     rclcpp::sleep_for(std::chrono::microseconds(P2OS_CYCLETIME_USEC));
 
@@ -463,7 +476,7 @@ int P2OSNode::Setup()
         rclcpp::sleep_for(std::chrono::microseconds(P2OS_CYCLETIME_USEC));
         continue;
       } else {
-        // couldn't connect; try different speed.
+        // Couldn't connect at this baud rate, try the next one.
         if (++currbaud < numbauds) {
           cfsetispeed(&term, bauds[currbaud]);
           cfsetospeed(&term, bauds[currbaud]);
@@ -483,7 +496,7 @@ int P2OSNode::Setup()
           num_sync_attempts = 3;
           continue;
         } else {
-          // tried all speeds; bail
+          // Tried all baud rates without success, bail out.
           break;
         }
       }
@@ -502,8 +515,8 @@ int P2OSNode::Setup()
         psos_state = READY;
         break;
       default:
-        // maybe P2OS is still running from last time.  let's try to CLOSE
-        // and reconnect
+        // P2OS might still be running from a previous session, send CLOSE
+        // and start the sync sequence over.
         if (!sent_close) {
           RCLCPP_DEBUG(rclcpp::get_logger("P2OsDriver"), "sending CLOSE");
           command = CLOSE;
@@ -520,6 +533,7 @@ int P2OSNode::Setup()
     //usleep(P2OS_CYCLETIME_USEC);
     rclcpp::sleep_for(std::chrono::microseconds(P2OS_CYCLETIME_USEC));
   }
+
   if (psos_state != READY) {
     if (this->psos_use_tcp) {
       RCLCPP_INFO(rclcpp::get_logger("P2OsDriver"), "Couldn't synchronize with P2OS.\n"
@@ -531,6 +545,7 @@ int P2OSNode::Setup()
     this->psos_fd = -1;
     return 1;
   }
+
   cnt = 4;
   cnt += snprintf(name, sizeof(name), "%s", &receivedpacket.packet[cnt]);
   cnt++;
@@ -555,7 +570,8 @@ int P2OSNode::Setup()
 
   RCLCPP_INFO(rclcpp::get_logger("P2OsDriver"), "Done.\n   Connected to %s, a %s %s", name, type, subtype);
 
-  // now, based on robot type, find the right set of parameters
+  // Look up the robot type in the params table to get the right DiffConvFactor
+  // and other model-specific constants.
   for (i = 0; i < PLAYER_NUM_ROBOT_TYPES; i++) {
     if (!strcasecmp(PlayerRobotParams[i].Class.c_str(), type) &&
       !strcasecmp(PlayerRobotParams[i].Subclass.c_str(), subtype))
@@ -570,7 +586,7 @@ int P2OSNode::Setup()
     param_idx = 0;
   }
 
-  // first, receive a packet so we know we're connected.
+  // Allocate the SIP packet parser, only once.
   if (!sippacket) {
     sippacket = new SIP(param_idx);
     sippacket->odom_frame_id = odom_frame_id;
@@ -583,9 +599,11 @@ int P2OSNode::Setup()
 
     SendReceive((P2OSPacket*)NULL,false);
   */
-  // turn off the sonars at first
+
+  // Start with sonars off; they get enabled below only if use_sonar_ is set.
   this->ToggleSonarPower(0);
-  // if requested, set max accel/decel limits
+
+  // Apply acceleration and deceleration limits if they were configured.
   P2OSPacket accel_packet;
   unsigned char accel_command[4];
   if (this->motor_max_trans_accel > 0) {
@@ -622,8 +640,7 @@ int P2OSNode::Setup()
     this->SendReceive(&accel_packet, false);
   }
 
-
-  // if requested, change PID settings
+  // Apply PID gains if they were configured.
   P2OSPacket pid_packet;
   unsigned char pid_command[4];
   if (this->rot_kp >= 0) {
@@ -675,12 +692,8 @@ int P2OSNode::Setup()
     this->SendReceive(&pid_packet);
   }
 
-
-  // if requested, change bumper-stall behavior
-  // 0 = don't stall
-  // 1 = stall on front bumper contact
-  // 2 = stall on rear bumper contact
-  // 3 = stall on either bumper contact
+  // Configure bumper stall behaviour.
+  // 0 = don't stall, 1 = stall on front, 2 = stall on rear, 3 = stall on either.
   if (this->bumpstall >= 0) {
     if (this->bumpstall > 3) {
       RCLCPP_INFO(rclcpp::get_logger("P2OsDriver"), "ignoring bumpstall value %d; should be 0, 1, 2, or 3",
@@ -698,7 +711,7 @@ int P2OSNode::Setup()
     }
   }
 
-  // Turn on the sonar
+  // Power on the sonar array if requested.
   if (use_sonar_) {
     this->ToggleSonarPower(1);
     RCLCPP_DEBUG(rclcpp::get_logger("P2OsDriver"), "Sonar array powered on.");
@@ -746,20 +759,16 @@ int P2OSNode::Shutdown()
 
 rclcpp::Time P2OSNode::get_current_time()
 {
-    // Get the current time
     return this->now();
-        
 }
 
 
 void
 P2OSNode::StandardSIPPutData(rclcpp::Time ts)
 {
-   // Convert the time to a string
-    std::string time_str = std::to_string(ts.seconds());
+  std::string time_str = std::to_string(ts.seconds());
+  //RCLCPP_DEBUG(rclcpp::get_logger("P2OsDriver"), "Time at SIPPutData: %s", time_str.c_str());
 
-    // Log the time string
-    //RCLCPP_DEBUG(rclcpp::get_logger("P2OsDriver"), "Time at SIPPutData: %s", time_str.c_str());
   p2os_data.position.header.stamp = ts;
   pose_pub_->publish(p2os_data.position);
   p2os_data.odom_trans.header.stamp = ts;
@@ -769,20 +778,20 @@ P2OSNode::StandardSIPPutData(rclcpp::Time ts)
   batt_pub_->publish(p2os_data.batt);
   mstate_pub_->publish(p2os_data.motors);
 
-  // Publish sonar data (at the moment is is commented out to reduce CPU load).
-  // We need only use the PointCloud2 messages.
+  // The raw SonarArray message is commented out here to reduce CPU load, we
+  // only publish the individual Range messages below.
   p2os_data.sonar.header.stamp = ts;
   // sonar_pub_->publish(p2os_data.sonar);
 
-  // Convert the sonar messages from SonarArray into PointCloud2.
-  convertSonarArrayToPointCloud2(p2os_data.sonar);
+  // Convert each sonar reading from SonarArray into individual Range messages,
+  // one per topic, so RViz2 can visualise all sonar cones at the same time.
+  convertSonarArrayToRanges(p2os_data.sonar);
 
-  // put aio data
+  // Publish AIO and DIO data.
   aio_pub_->publish(p2os_data.aio);
-  // put dio data
   dio_pub_->publish(p2os_data.dio);
 
-  // put gripper and lift data
+  // Publish gripper and PTZ state.
   grip_state_pub_->publish(p2os_data.gripper);
   ptz_state_pub_->publish(ptz_.getCurrentState());
 
@@ -790,59 +799,54 @@ P2OSNode::StandardSIPPutData(rclcpp::Time ts)
   // put compass data
 }
 
-void P2OSNode::convertSonarArrayToPointCloud2(const p2os_msgs::msg::SonarArray msg)
+void P2OSNode::convertSonarArrayToRanges(const p2os_msgs::msg::SonarArray msg)
 {
-    // Validate if the publisher has been initialized.
-    if (!sonar_pc_pub_) {
-        return;
+  // * Per REP-117, out-of-range readings (i.e. no obstacle detected) should be
+  // * published as +infinity, not skipped. Skipping causes the sonar cone to
+  // * disappear from RViz2 on every missed reading, which is confusing. We only
+  // * skip truly invalid readings (NaN or negative range values from the hardware).
+
+  // Pioneer 3-DX sonar FOV is approximately 15 degrees (0.2618 rad).
+  const float SONAR_FOV = 0.2618f;
+  const float SONAR_MIN = 0.1f;
+  const float SONAR_MAX = 5.0f;
+
+  for (int i = 0; i < msg.ranges_count; ++i) {
+    // Guard against publishing to a sonar index that has no publisher.
+    // This should not happen in normal operation, but is a good safety net.
+    if (i >= static_cast<int>(sonar_range_pubs_.size())) {
+      RCLCPP_WARN_ONCE(rclcpp::get_logger("P2OsDriver"),
+        "Sonar index %d exceeds publisher vector size (%zu). "
+        "Check P2OS_NUM_SONARS in the header.", i, sonar_range_pubs_.size());
+      break;
     }
 
-    sensor_msgs::msg::PointCloud2 cloud_msg;
-    
-    // Inherit the exact timestamp from the incoming sonar message.
-    cloud_msg.header.stamp = msg.header.stamp; 
-    cloud_msg.header.frame_id = "base_link"; // ! This could be improved with better TFs.
-  
-    // Set up the PointCloud2 modifier to handle the memory formatting.
-    sensor_msgs::PointCloud2Modifier modifier(cloud_msg);
-    modifier.setPointCloud2FieldsByString(1, "xyz");
-    modifier.resize(msg.ranges_count);
+    double range_val = msg.ranges[i];
+    float range_out;
 
-    // Iterators to quickly write to the x, y, z fields.
-    sensor_msgs::PointCloud2Iterator<float> iter_x(cloud_msg, "x");
-    sensor_msgs::PointCloud2Iterator<float> iter_y(cloud_msg, "y");
-    sensor_msgs::PointCloud2Iterator<float> iter_z(cloud_msg, "z");
-
-    // Pioneer 3-DX Standard Front Sonar Angles (in Radians).
-    const std::vector<double> sonar_angles = {
-        1.5708,  0.8727,  0.5236,  0.1745,
-       -0.1745, -0.5236, -0.8727, -1.5708
-    };
-
-    // Build the cloud.
-    for (int i = 0; i < msg.ranges_count; ++i, ++iter_x, ++iter_y, ++iter_z) {
-        double range = msg.ranges[i];
-      
-        // Filter out invalid readings (NaN or out of bounds).
-        if (std::isnan(range) || range < 0.1 || range > 5.0) {
-            *iter_x = 0.0; 
-            *iter_y = 0.0; 
-            *iter_z = 0.0; 
-            continue;
-        }
-
-        // Convert Polar (Range, Angle) to Cartesian (X, Y).
-        double angle = (i < sonar_angles.size()) ? sonar_angles[i] : 0.0;
-      
-        *iter_x = range * std::cos(angle);
-        *iter_y = range * std::sin(angle);
-        *iter_z = 0.2; // Height of the sonars off the ground.
-        // In this case the sonar height is fixed because sonars are 2D.
-        // This way we can use this information as we use lidar's.
+    if (std::isnan(range_val) || range_val <= 0.0) {
+      // Genuinely bad reading from the hardware, skip entirely.
+      continue;
+    } else if (range_val < SONAR_MIN || range_val > SONAR_MAX) {
+      // Out-of-range but not invalid: publish as infinity so RViz2 keeps the
+      // sonar cone visible without a hit marker (REP-117 convention).
+      range_out = std::numeric_limits<float>::infinity();
+    } else {
+      range_out = static_cast<float>(range_val);
     }
 
-    // Publish the PointCloud.
-    sonar_pc_pub_->publish(cloud_msg);
+    sensor_msgs::msg::Range range_msg;
+    range_msg.header.stamp    = msg.header.stamp;
+    // Each publisher maps to a TF frame named sonar_N_link.
+    range_msg.header.frame_id = "sonar_" + std::to_string(i) + "_link";
+    range_msg.radiation_type  = sensor_msgs::msg::Range::ULTRASOUND;
+    range_msg.field_of_view   = SONAR_FOV;
+    range_msg.min_range       = SONAR_MIN;
+    range_msg.max_range       = SONAR_MAX;
+    range_msg.range           = range_out;
+
+    sonar_range_pubs_[i]->publish(range_msg);
+  }
 }
 
 /* send the packet, then receive and parse an SIP */
@@ -870,7 +874,7 @@ int P2OSNode::SendReceive(P2OSPacket * pkt, bool publish_data)
     const bool ser_aux =
       (packet.packet[0] == 0xFA && packet.packet[1] == 0xFB && packet.packet[3] == SERAUX);
     if (packet_check) {
-      /* It is a server packet, so process it */
+      /* It is a server packet, so process it. */
       this->sippacket->ParseStandard(&packet.packet[3]);
       this->sippacket->FillStandard(&(this->p2os_data));
 
@@ -879,7 +883,7 @@ int P2OSNode::SendReceive(P2OSPacket * pkt, bool publish_data)
         this->StandardSIPPutData(packet.timestamp);
       }
     } else if (ser_aux) {
-      // This is an AUX serial packet
+      // This is an AUX serial packet, hand it to the PTZ handler.
       if (ptz_.isOn()) {
         int len = packet.packet[2] - 3;
         if (ptz_.cb_.gotPacket()) {
@@ -899,7 +903,7 @@ int P2OSNode::SendReceive(P2OSPacket * pkt, bool publish_data)
   return 0;
 }
 
-/*  ROS1 style diagnostics are not a part of ROS2
+/*  ROS1 style diagnostics are not a part of ROS2.
 void P2OSNode::updateDiagnostics()
 {
   diagnostic_.update();
@@ -927,7 +931,6 @@ void P2OSNode::check_stall(diagnostic_updater::DiagnosticStatusWrapper & stat)
   stat.add("left wheel stall", sippacket->lwstall);
   stat.add("right wheel stall", sippacket->rwstall);
 }
-
 */
 
 void P2OSNode::ResetRawPositions()
@@ -985,7 +988,7 @@ void P2OSNode::ToggleMotorPower(unsigned char val)
 //  Actarray stuff
 /////////////////////////////////////////////////////
 
-// Ticks to degrees from the ARIA software
+// Ticks to degrees, from the ARIA software.
 //! Convert ticks to degrees.
 inline double P2OSNode::TicksToDegrees(int joint, unsigned char ticks)
 {
@@ -1004,8 +1007,8 @@ inline double P2OSNode::TicksToDegrees(int joint, unsigned char ticks)
   return result;
 }
 
-// Degrees to ticks from the ARIA software
-//! convert degrees to ticks
+// Degrees to ticks, from the ARIA software.
+//! Convert degrees to ticks.
 inline unsigned char P2OSNode::DegreesToTicks(int joint, double degrees)
 {
   double val;
@@ -1028,7 +1031,7 @@ inline unsigned char P2OSNode::DegreesToTicks(int joint, double degrees)
   }
 }
 
-//! Convert ticks to radians
+//! Convert ticks to radians.
 inline double P2OSNode::TicksToRadians(int joint, unsigned char ticks)
 {
   double result = DTOR(TicksToDegrees(joint, ticks));
@@ -1042,7 +1045,7 @@ inline unsigned char P2OSNode::RadiansToTicks(int joint, double rads)
   return result;
 }
 
-//! Convert radians per second to radians per encoder tick.
+//! Convert radians per second to seconds per encoder tick.
 inline double P2OSNode::RadsPerSectoSecsPerTick(int joint, double speed)
 {
   double degs = RTOD(speed);
@@ -1058,7 +1061,7 @@ inline double P2OSNode::RadsPerSectoSecsPerTick(int joint, double speed)
   return secsPerTick;
 }
 
-//! Convert Seconds per encoder tick to radians per second.
+//! Convert seconds per encoder tick to radians per second.
 inline double P2OSNode::SecsPerTicktoRadsPerSec(int joint, double msecs)
 {
   double ticksPerSec = 1.0 / (static_cast<double>(msecs) / 1000.0);

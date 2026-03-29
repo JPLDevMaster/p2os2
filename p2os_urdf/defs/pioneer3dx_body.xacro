@@ -165,7 +165,7 @@
   <xacro:p3dx_wheel suffix="left" parent="base_link" reflect="1"/>
   <xacro:p3dx_wheel suffix="right" parent="base_link" reflect="-1"/>
 
-  <!-- Front + Back Sonar -->
+  <!-- Front + Back Sonar ring visuals (decorative mesh only, not individual beam frames) -->
   <link name="front_sonar">
 	<inertial>
 	  <mass value="0.0001"/>	
@@ -221,6 +221,62 @@
 	<parent link="base_link"/>
 	<child link="back_sonar"/>
   </joint>
+
+  <!--
+    Individual sonar beam frames — one per transducer.
+
+    These are the coordinate frames that Range messages reference via their
+    header.frame_id (sonar_N_link). TI believe they must exist in the TF tree 
+	for RViz2 to position and orient the sonar cones correctly.
+
+    Positions and yaw angles are taken directly from p3dx_params in
+    robot_params.cpp (the ARIA parameter file for this robot model). The
+    format there is {x_mm, y_mm, yaw_degrees} measured from the robot centre
+    with x-forward / y-left convention, which maps directly to base_link.
+
+    z is 0.208m to match the sonar ring height already established by the
+    front_sonar and back_sonar joint origins above. base_link is at ground
+    level in this URDF (confirmed by the wheel joints at z=0.091m = wheel
+    radius), so 0.208m is the correct height off the ground.
+
+    The macro takes no visual geometry, these are pure coordinate frames.
+    front_sonar and back_sonar above already provide the ring mesh visuals.
+
+    NOTE: If an 8-sonar Pioneer variant is running, sonar_0 through
+    sonar_7 will receive Range messages and sonar_8 through sonar_15 will
+    be silent. All 16 TF frames are published regardless, the cost is negligible
+    and this way the same URDF works on both variants without modification.
+  -->
+  <xacro:property name="SONAR_Z" value="0.208"/>
+
+  <xacro:macro name="sonar_frame" params="index x_m y_m yaw_rad">
+    <link name="sonar_${index}_link"/>
+    <joint name="sonar_${index}_joint" type="fixed">
+      <origin xyz="${x_m} ${y_m} ${SONAR_Z}" rpy="0 0 ${yaw_rad}"/>
+      <parent link="base_link"/>
+      <child  link="sonar_${index}_link"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- Sonar positions from p3dx_params -> x_mm/1000, y_mm/1000, yaw_deg*pi/180 -->
+  <!-- Front arc (sonars 0-7, x positive = in front of robot centre) -->
+  <xacro:sonar_frame index="0"  x_m=" 0.115" y_m=" 0.130" yaw_rad=" 1.5708"/>
+  <xacro:sonar_frame index="1"  x_m=" 0.155" y_m=" 0.115" yaw_rad=" 0.8727"/>
+  <xacro:sonar_frame index="2"  x_m=" 0.190" y_m=" 0.080" yaw_rad=" 0.5236"/>
+  <xacro:sonar_frame index="3"  x_m=" 0.210" y_m=" 0.025" yaw_rad=" 0.1745"/>
+  <xacro:sonar_frame index="4"  x_m=" 0.210" y_m="-0.025" yaw_rad="-0.1745"/>
+  <xacro:sonar_frame index="5"  x_m=" 0.190" y_m="-0.080" yaw_rad="-0.5236"/>
+  <xacro:sonar_frame index="6"  x_m=" 0.155" y_m="-0.115" yaw_rad="-0.8727"/>
+  <xacro:sonar_frame index="7"  x_m=" 0.115" y_m="-0.130" yaw_rad="-1.5708"/>
+  <!-- Rear arc (sonars 8-15, x negative = behind robot centre) -->
+  <xacro:sonar_frame index="8"  x_m="-0.115" y_m="-0.130" yaw_rad="-1.5708"/>
+  <xacro:sonar_frame index="9"  x_m="-0.155" y_m="-0.115" yaw_rad="-2.2689"/>
+  <xacro:sonar_frame index="10" x_m="-0.190" y_m="-0.080" yaw_rad="-2.6180"/>
+  <xacro:sonar_frame index="11" x_m="-0.210" y_m="-0.025" yaw_rad="-2.9671"/>
+  <xacro:sonar_frame index="12" x_m="-0.210" y_m=" 0.025" yaw_rad=" 2.9671"/>
+  <xacro:sonar_frame index="13" x_m="-0.190" y_m=" 0.080" yaw_rad=" 2.6180"/>
+  <xacro:sonar_frame index="14" x_m="-0.155" y_m=" 0.115" yaw_rad=" 2.2689"/>
+  <xacro:sonar_frame index="15" x_m="-0.115" y_m=" 0.130" yaw_rad=" 1.5708"/>
 
 	<gazebo>
 		<plugin

@@ -29,6 +29,7 @@
 #include <pthread.h>
 #include <sys/time.h>
 #include "rclcpp/rclcpp.hpp"
+#include <sensor_msgs/msg/range.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <tf2_ros/transform_broadcaster.h>
@@ -82,6 +83,8 @@ typedef struct ros_p2os_data
 #include "kinecalc.hpp"
 
 #include "p2os_ptz.hpp"
+
+#define P2OS_NUM_SONARS 16
 
 class SIP;
 
@@ -162,7 +165,7 @@ protected:
   rclcpp::Publisher<p2os_msgs::msg::GripperState>::SharedPtr grip_state_pub_;
   rclcpp::Publisher<p2os_msgs::msg::PTZState>::SharedPtr ptz_state_pub_;
   rclcpp::Publisher<p2os_msgs::msg::SonarArray>::SharedPtr sonar_pub_;
-  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr sonar_pc_pub_;
+  std::vector<rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr> sonar_range_pubs_;
   rclcpp::Publisher<p2os_msgs::msg::AIO>::SharedPtr aio_pub_;
   rclcpp::Publisher<p2os_msgs::msg::DIO>::SharedPtr dio_pub_;
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pose_pub_;
@@ -174,7 +177,7 @@ protected:
     
   P2OSPtz ptz_;
 
-  std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
+  std::unique_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
   rclcpp::Time veltime;
 
   SIP * sippacket;
@@ -219,7 +222,7 @@ protected:
   //! Use the sonar array?
   bool use_sonar_;
 
-  void convertSonarArrayToPointCloud2(const p2os_msgs::msg::SonarArray msg);
+  void convertSonarArrayToRanges(const p2os_msgs::msg::SonarArray msg);
 
   //P2OSPtz ptz_;
 
